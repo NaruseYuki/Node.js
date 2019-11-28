@@ -1,7 +1,6 @@
 {
   "name": "6-2",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -10,5 +9,7 @@
   "license": "ISC",
   "dependencies": {
     "http-status-codes": "^1.4.0"
-  }
+  },
+  "devDependencies": {},
+  "description": ""
 }

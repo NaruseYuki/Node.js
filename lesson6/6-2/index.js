@@ -1,63 +1,41 @@
 const port =3000,
     http = require("http"),
-    httpStatus = require("http-status-codes"),
-    fs = require("fs");
+    httpStatusCodes = require("http-status-codes"),
+    router = require("./router"),
+    fs = require("fs"),
+    plainTextContentType = {
+        "Content-Type":"text/plain"
+    },
+    htmlContentType = {
+        "Content-Type":"text/html"
+    },
 
-const sendErrorResponse = res => {//エラー関数処理を作る
-    res.writeHead(httpStatus.NOT_FOUND,{
-        "Content-Type":"text-html"
+//コードの重複を減らすためにreadfile関数をカスタマイズ
+customReadFile = (file,res) =>{
+    fs.readFile('./' + file,(errors,data) => {
+        if(errors){
+            console.log("Error reading the file …")
+        }
+        res.end(data);
     });
-    res.write("<h1>File Not Found!</h1>");
-    res.end();
 };
 
-http
-    .createServer((req,res) =>{
-    let url = req.url;  //リクエストのURLをurl変数に保存
-    //URLにファイル拡張子が含まれているかチェック
-    if(url.indexOf(".html")!==-1){
-        res.writeHead(httpStatus.OK,{
-            "Content-Type": "text-html"
-    });//レスポンスのコンテンツタイプを設定
-    //readFileでファイルの内容を読む
-    customReadFile('./views'+ url, res);
-    } else if (url.indexOf(".js")!==-1){
-                 res.writeHead(httpStatus.OK,{
-                    "Content-Type": "javascript" 
-    });
-    customReadFile('./public/js'+ url, res);
-    } else if (url.indexOf(".css")!==-1){
-    res.writeHead(httpStatus.OK,{
-       "Content-Type": "text/css" 
-    });
-    customReadFile('./public/css'+ url, res);
-    } else if (url.indexOf(".png")!==-1){
-        res.writeHead(httpStatus.OK,{
-           "Content-Type": "image/png" 
-        });
-        customReadFile('./public/images'+ url, res);
-    } else {
-        sendErrorResponse(res);
-    }
-})
-.listen(3000);
+//getとpostで経路を登録する
+router.get("/",(req,res)=>{
+    res.writeHead(httpStatusCodes.OK,plainTextContentType);
+    res.end("INDEX");
+});
 
-console.log('The server is listening on port number:' + port);
+router.get("/index.html",(req,res)=>{
+    res.writeHead(httpStatusCodes.OK,htmlContentType);
+    customReadFile("./views/index.html",res);
+});
 
-//リクエストされた名前のファイルを探す
-const customReadFile = (file_path,res) =>{
-    //ファイルは存在するか？
-    if(fs.existsSync(file_path,res)){
-        fs.readFile(file_path,(error,data) =>{
-            if(error){
-                console.log(error);
-                sendErrorResponse(res);
-                return;
-            }
-        res.write(data);
-        res.end();
-    });
-} else {
-    sendErrorResponse(res);
-}
-};
+router.post("/",(req,res)=>{
+    res.writeHead(httpStatusCodes.OK,plainTextContentType);
+    res.end("POSTED");
+});
+
+//すべてのリクエストをrouter.jsを通じて処理する
+http.createServer(router.handle).listen(3000);
+console.log('The server is listening on port number:'+ port);
